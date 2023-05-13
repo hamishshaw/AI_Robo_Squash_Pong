@@ -6,11 +6,11 @@ import numpy as np
 
 def extract_colour_pixels(image, colour):
     # Convert the colour to the corresponding RGB values
-    colour_rgb = np.array(colour) * 255
+    colour_rgb = np.array(colour)
 
     # Define the lower and upper bounds for the colour range
-    lower_colour = np.maximum(colour_rgb - 1, 0).astype(np.uint8)
-    upper_colour = np.minimum(colour_rgb + 1, 255).astype(np.uint8)
+    lower_colour = np.maximum(colour_rgb - 20, 0).astype(np.uint8)
+    upper_colour = np.minimum(colour_rgb + 20, 255).astype(np.uint8)
 
     # Mask the colour pixels
     colour_mask = np.logical_and(np.all(image >= lower_colour, axis=2), np.all(image <= upper_colour, axis=2))

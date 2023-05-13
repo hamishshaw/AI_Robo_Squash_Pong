@@ -5,7 +5,8 @@ import pybullet as p
 from pybullet_utils import bullet_client as bc
 from simple_driving.resources.car import Car
 from simple_driving.resources.plane import Plane
-from simple_driving.resources.goal import Goal
+from simple_driving.resources.goal import Goal 
+from simple_driving.resources.puck import Puck ## TRACKER FOR ADDITIONS TO CORE PROGRAM
 import matplotlib.pyplot as plt
 import time
 
@@ -39,6 +40,7 @@ class SimpleDrivingEnv(gym.Env):
         self._isDiscrete = isDiscrete
         self.car = None
         self.goal_object = None
+        self.puck = None ## TRACKER FOR ADDITIONS TO CORE PROGRAM
         self.goal = None
         self.done = False
         self.prev_dist_to_goal = None
@@ -113,6 +115,9 @@ class SimpleDrivingEnv(gym.Env):
         # Visual element of the goal
         self.goal_object = Goal(self._p, self.goal)
 
+
+        self.puck = Puck(self._p,(2,2)) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+
         # Get observation to return
         carpos = self.car.get_observation()
 
@@ -155,11 +160,11 @@ class SimpleDrivingEnv(gym.Env):
         elif mode == "tp_camera":
             car_id = self.car.get_ids()
             base_pos, orn = self._p.getBasePositionAndOrientation(car_id)
-            view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos,
-                                                                    distance=30,
-                                                                    yaw=0.0,
-                                                                    pitch=-90,
-                                                                    roll=0,
+            view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    distance=30, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    yaw=0.0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    pitch=-90, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    roll=0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
                                                                     upAxisIndex=2)
             proj_matrix = self._p.computeProjectionMatrixFOV(fov=60,
                                                              aspect=float(RENDER_WIDTH) / RENDER_HEIGHT,
