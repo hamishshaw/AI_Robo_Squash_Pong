@@ -8,6 +8,8 @@ from simple_driving.resources.plane import Plane
 from simple_driving.resources.goal import Goal
 import matplotlib.pyplot as plt
 import time
+from simple_driving.resources.arm import Arm
+
 
 RENDER_HEIGHT = 720
 RENDER_WIDTH = 960
@@ -46,6 +48,7 @@ class SimpleDrivingEnv(gym.Env):
         self.render_rot_matrix = None
         self.reset()
         self._envStepCounter = 0
+        self.arm = None
 
     def step(self, action):
         # Feed action to the car and get observation of car's state
@@ -56,6 +59,7 @@ class SimpleDrivingEnv(gym.Env):
             steering_angle = steerings[action]
             action = [throttle, steering_angle]
         self.car.apply_action(action)
+        self.arm.apply_action([0.05, 0.05])
         for i in range(self._actionRepeat):
           self._p.stepSimulation()
           if self._renders:
@@ -69,7 +73,7 @@ class SimpleDrivingEnv(gym.Env):
             self.done = True
             break
           self._envStepCounter += 1
-
+        
         # Compute reward as L2 change in distance to goal
         # dist_to_goal = math.sqrt(((car_ob[0] - self.goal[0]) ** 2 +
                                   # (car_ob[1] - self.goal[1]) ** 2))
@@ -100,7 +104,7 @@ class SimpleDrivingEnv(gym.Env):
         Plane(self._p)
         self.car = Car(self._p)
         self._envStepCounter = 0
-
+        self.arm = Arm(self._p)
         # Set the goal to a random target
         x = (self.np_random.uniform(5, 9) if self.np_random.integers(2) else
              self.np_random.uniform(-9, -5))

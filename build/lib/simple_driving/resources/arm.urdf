@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<robot name="two_joint_arm">
+    <!-- Colours -->
+    <material name="black"> 
+        <color rgba="0 0 0 1"/>
+    </material>
+    <material name="blue"> 
+        <color rgba="0.6 0.7 0.8 1"/>
+    </material>
+
+
+    <!-- Base Frame of Arm --> 
+    <link name="base_link">
+        <visual> 
+            <geometry> 
+                <box size="0.3 0.5 0.3"/>
+            </geometry>
+            <origin xyz ="0 0 0.15" rpy="0 0 0"/>
+            <material name="blue"/>
+        </visual>
+        <inertial>
+            <mass value="1000"/>
+            <inertia ixx="0.1" ixy="0" ixz="0" iyy="0.1" iyz="0.0" izz="0.1"/>
+        </inertial>
+        <collision> 
+             <geometry> 
+                <box size="0.3 0.5 0.3"/>
+            </geometry>
+            <origin xyz ="0 0 0.15" rpy="0 0 0"/>
+        </collision>   
+    </link>
+
+    <!-- Link_0 -->
+    <link name="link_0">
+        <visual> 
+            <geometry> 
+                <cylinder length="1" radius="0.1"/>
+            </geometry>
+            <origin xyz="0.5 0 0" rpy="0 1.57075 0" />
+            <material name="black"/>
+        </visual>
+    </link>
+
+    <joint name="base_to_L0_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="link_0"/> 
+        <axis xyz="0 0 1"/>
+        <origin xyz=".15 0 0.15"/>
+    </joint> 
+
+    <!-- Link_1 -->
+    <link name="link_1">
+        <visual> 
+            <geometry> 
+                <cylinder length="1" radius="0.1"/>
+            </geometry>
+            <origin xyz="0.5 0 0" rpy="0 1.57075 0" />
+            <material name="black"/>
+        </visual>
+    </link> 
+
+    <joint name="L0_to_L1_joint" type="continuous">
+        <parent link="link_0"/>
+        <child link="link_1"/> 
+        <axis xyz="0 0 1"/>
+        <origin xyz="1 0 0"/>
+    </joint> 
+    <!-- End Affector-->
+    <link name="End_aff">
+        <visual> 
+            <geometry> 
+                <box size="0.1 0.5 0.3"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0" />
+            <material name="black"/>           
+        </visual>
+        <collision> 
+             <geometry> 
+                <box size="0.1 0.5 0.3"/>
+            </geometry>
+           <origin xyz="0 0 0" rpy="0 0 0" />
+        </collision> 
+    </link> 
+    <joint name="L1_End_aff" type="fixed">
+        <parent link="link_1"/>
+        <child link="End_aff"/> 
+        <origin xyz="1 0 0"/>
+    </joint> 
+</robot>
