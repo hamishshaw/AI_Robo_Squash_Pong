@@ -156,9 +156,9 @@ class SimpleDrivingEnv(gym.Env):
             car_id = self.car.get_ids()
             base_pos, orn = self._p.getBasePositionAndOrientation(car_id)
             view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos,
-                                                                    distance=20.0,
-                                                                    yaw=40.0,
-                                                                    pitch=-35,
+                                                                    distance=30,
+                                                                    yaw=0.0,
+                                                                    pitch=-90,
                                                                     roll=0,
                                                                     upAxisIndex=2)
             proj_matrix = self._p.computeProjectionMatrixFOV(fov=60,
