@@ -17,6 +17,10 @@
         <box size="0.001 0.001 0.001"/>
       </geometry>
     </collision>
+    <inertial> 
+        <mass value="0"/>
+        <inertia ixx="1" ixy="1" ixz="1" iyy="1" iyz="1" izz="1"/>
+    </inertial> 
   </link>
 
   <link name="wall1">

@@ -57,7 +57,7 @@ class SimpleDrivingEnv(gym.Env):
         current_velocity_magnitude = abs(linear_velocity[0]) + abs(linear_velocity[1]) + abs(linear_velocity[2])
         if current_velocity_magnitude < self.threshold_velocity:
             # Calculate the corrective force based on the desired threshold and current velocity
-            corrective_force_magnitude = (self.threshold_velocity - current_velocity_magnitude) * 10  # puckmass = 1
+            corrective_force_magnitude = (self.threshold_velocity - current_velocity_magnitude) * 100  # puckmass = 1
 
             if current_velocity_magnitude != 0:
                 # Get the direction of the current velocity
