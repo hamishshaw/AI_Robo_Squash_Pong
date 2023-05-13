@@ -56,7 +56,7 @@ def update(frame):
     return im,
 
 ani = animation.FuncAnimation(fig, update, frames=frames, interval=200)
-# plt.show()
+plt.show()
 
 fig, ax = plt.subplots()
 ax.axis("off")

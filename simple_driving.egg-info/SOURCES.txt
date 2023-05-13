@@ -10,6 +10,7 @@ simple_driving/envs/__init__.py
 simple_driving/envs/simple_driving_env.py
 simple_driving/resources/__init__.py
 simple_driving/resources/ai_simplepuck.urdf
+simple_driving/resources/ai_simplewall.urdf
 simple_driving/resources/car.py
 simple_driving/resources/goal.py
 simple_driving/resources/plane.py
@@ -17,3 +18,4 @@ simple_driving/resources/puck.py
 simple_driving/resources/simplecar.urdf
 simple_driving/resources/simplegoal.urdf
 simple_driving/resources/simpleplane.urdf
+simple_driving/resources/wall.py

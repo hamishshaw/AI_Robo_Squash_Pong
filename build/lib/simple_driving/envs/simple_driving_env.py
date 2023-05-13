@@ -7,6 +7,7 @@ from simple_driving.resources.car import Car
 from simple_driving.resources.plane import Plane
 from simple_driving.resources.goal import Goal 
 from simple_driving.resources.puck import Puck ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+from simple_driving.resources.wall import Wall ## TRACKER FOR ADDITIONS TO CORE PROGRAM
 import matplotlib.pyplot as plt
 import time
 
@@ -41,6 +42,8 @@ class SimpleDrivingEnv(gym.Env):
         self.car = None
         self.goal_object = None
         self.puck = None ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        self.wall = None ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        self.threshold_velocity = 10 ## TRACKER FOR ADDITIONS TO CORE PROGRAM
         self.goal = None
         self.done = False
         self.prev_dist_to_goal = None
@@ -50,6 +53,35 @@ class SimpleDrivingEnv(gym.Env):
         self._envStepCounter = 0
 
     def step(self, action):
+        linear_velocity, _ = p.getBaseVelocity(self.puck.puck)
+        current_velocity_magnitude = abs(linear_velocity[0]) + abs(linear_velocity[1]) + abs(linear_velocity[2])
+        if current_velocity_magnitude < self.threshold_velocity:
+            # Calculate the corrective force based on the desired threshold and current velocity
+            corrective_force_magnitude = (self.threshold_velocity - current_velocity_magnitude) * 10  # puckmass = 1
+
+            if current_velocity_magnitude != 0:
+                # Get the direction of the current velocity
+                direction = (linear_velocity[0] / current_velocity_magnitude,
+                            linear_velocity[1] / current_velocity_magnitude,
+                            linear_velocity[2] / current_velocity_magnitude)
+                corrective_force = (corrective_force_magnitude * direction[0],
+                                corrective_force_magnitude * direction[1],
+                                corrective_force_magnitude * direction[2])
+
+                # Apply the corrective force to the puck
+                p.applyExternalForce(self.puck.puck, -1, forceObj=corrective_force, posObj=[0, 0, 0], flags=p.WORLD_FRAME)
+            # else: ## add kicker to start the process again
+            #     # If the velocity is exactly zero, set the direction to (0, 0, 0)
+            #     direction = (1, 0, 0)
+
+            # Calculate the corrective force vector in the same direction as the current velocity
+            
+
+                
+        
+        
+        
+        
         # Feed action to the car and get observation of car's state
         if (self._isDiscrete):
             fwd = [-1, -1, -1, 0, 0, 0, 1, 1, 1]
@@ -116,7 +148,11 @@ class SimpleDrivingEnv(gym.Env):
         self.goal_object = Goal(self._p, self.goal)
 
 
-        self.puck = Puck(self._p,(2,2)) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        self.puck = Puck(self._p,(-1,0)) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        self.wall = Wall (self._p,(0,0),self.puck) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        p.setTimeStep(1.0 / 240.0)  # Set a smaller time step for more accurate simulation ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        p.setPhysicsEngineParameter(numSolverIterations=10) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        
 
         # Get observation to return
         carpos = self.car.get_observation()
