@@ -5,7 +5,8 @@ import pybullet as p
 from pybullet_utils import bullet_client as bc
 from simple_driving.resources.car import Car
 from simple_driving.resources.plane import Plane
-from simple_driving.resources.goal import Goal
+from simple_driving.resources.goal import Goal 
+from simple_driving.resources.puck import Puck ## TRACKER FOR ADDITIONS TO CORE PROGRAM
 import matplotlib.pyplot as plt
 import time
 
@@ -39,6 +40,7 @@ class SimpleDrivingEnv(gym.Env):
         self._isDiscrete = isDiscrete
         self.car = None
         self.goal_object = None
+        self.puck = None ## TRACKER FOR ADDITIONS TO CORE PROGRAM
         self.goal = None
         self.done = False
         self.prev_dist_to_goal = None
@@ -62,7 +64,7 @@ class SimpleDrivingEnv(gym.Env):
             time.sleep(self._timeStep)
 
           carpos, carorn = self._p.getBasePositionAndOrientation(self.car.car)
-          ballpos, ballorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
+          goalpos, goalorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
           car_ob = self.getExtendedObservation()
 
           if self._termination():
@@ -73,22 +75,17 @@ class SimpleDrivingEnv(gym.Env):
         # Compute reward as L2 change in distance to goal
         # dist_to_goal = math.sqrt(((car_ob[0] - self.goal[0]) ** 2 +
                                   # (car_ob[1] - self.goal[1]) ** 2))
-        dist_to_goal = math.sqrt(((carpos[0] - ballpos[0]) ** 2 +
-                                  (carpos[1] - ballpos[1]) ** 2))
+        dist_to_goal = math.sqrt(((carpos[0] - goalpos[0]) ** 2 +
+                                  (carpos[1] - goalpos[1]) ** 2))
         # reward = max(self.prev_dist_to_goal - dist_to_goal, 0)
         reward = -dist_to_goal
         self.prev_dist_to_goal = dist_to_goal
 
-        # Done by running off boundaries
-        # if (carpos[0] >= 10 or carpos[0] <= -10 or
-        #         carpos[1] >= 10 or carpos[1] <= -10):
-        #     self.done = True
         # Done by reaching goal
-        if dist_to_goal < 0.5 and not self.reached_goal:
-            print("reached goal")
+        if dist_to_goal < 1.5 and not self.reached_goal:
+            #print("reached goal")
             self.done = True
             self.reached_goal = True
-            reward = 50
 
         ob = car_ob
         return ob, reward, self.done, dict()
@@ -117,6 +114,9 @@ class SimpleDrivingEnv(gym.Env):
 
         # Visual element of the goal
         self.goal_object = Goal(self._p, self.goal)
+
+
+        self.puck = Puck(self._p,(2,2)) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
 
         # Get observation to return
         carpos = self.car.get_observation()
@@ -160,11 +160,11 @@ class SimpleDrivingEnv(gym.Env):
         elif mode == "tp_camera":
             car_id = self.car.get_ids()
             base_pos, orn = self._p.getBasePositionAndOrientation(car_id)
-            view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos,
-                                                                    distance=20.0,
-                                                                    yaw=40.0,
-                                                                    pitch=-35,
-                                                                    roll=0,
+            view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    distance=30, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    yaw=0.0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    pitch=-90, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    roll=0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
                                                                     upAxisIndex=2)
             proj_matrix = self._p.computeProjectionMatrixFOV(fov=60,
                                                              aspect=float(RENDER_WIDTH) / RENDER_HEIGHT,
@@ -184,11 +184,11 @@ class SimpleDrivingEnv(gym.Env):
     def getExtendedObservation(self):
         # self._observation = []  #self._racecar.getObservation()
         carpos, carorn = self._p.getBasePositionAndOrientation(self.car.car)
-        ballpos, ballorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
+        goalpos, goalorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
         invCarPos, invCarOrn = self._p.invertTransform(carpos, carorn)
-        ballPosInCar, ballOrnInCar = self._p.multiplyTransforms(invCarPos, invCarOrn, ballpos, ballorn)
+        goalPosInCar, goalOrnInCar = self._p.multiplyTransforms(invCarPos, invCarOrn, goalpos, goalorn)
 
-        observation = [ballPosInCar[0], ballPosInCar[1]]
+        observation = [goalPosInCar[0], goalPosInCar[1]]
         return observation
 
     def _termination(self):
