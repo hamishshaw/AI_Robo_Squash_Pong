@@ -6,8 +6,9 @@ from pybullet_utils import bullet_client as bc
 from simple_driving.resources.car import Car
 from simple_driving.resources.plane import Plane
 from simple_driving.resources.goal import Goal 
-from simple_driving.resources.puck import Puck ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-from simple_driving.resources.wall import Wall ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+from simple_driving.resources.puck import Puck 
+from simple_driving.resources.wall import Wall 
+import random 
 import matplotlib.pyplot as plt
 import time
 from simple_driving.resources.arm import Arm
@@ -43,9 +44,9 @@ class SimpleDrivingEnv(gym.Env):
         self._isDiscrete = isDiscrete
         self.car = None
         self.goal_object = None
-        self.puck = None ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-        self.wall = None ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-        self.threshold_velocity = 10 ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        self.puck = None 
+        self.wall = None 
+        self.threshold_velocity = 10 
         self.goal = None
         self.done = False
         self.prev_dist_to_goal = None
@@ -56,6 +57,7 @@ class SimpleDrivingEnv(gym.Env):
         self.arm = None
 
     def step(self, action):
+        # THis is the puck kicker to ensure it keeps moving
         linear_velocity, _ = p.getBaseVelocity(self.puck.puck)
         current_velocity_magnitude = abs(linear_velocity[0]) + abs(linear_velocity[1]) + abs(linear_velocity[2])
         if current_velocity_magnitude < self.threshold_velocity:
@@ -92,17 +94,18 @@ class SimpleDrivingEnv(gym.Env):
             throttle = fwd[action]
             steering_angle = steerings[action]
             action = [throttle, steering_angle]
-        self.car.apply_action(action)
+        # self.car.apply_action(action)
         self.arm.apply_action([0.05, 0.05])
         for i in range(self._actionRepeat):
           self._p.stepSimulation()
           if self._renders:
             time.sleep(self._timeStep)
 
-          carpos, carorn = self._p.getBasePositionAndOrientation(self.car.car)
-          goalpos, goalorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
+        #   carpos, carorn = self._p.getBasePositionAndOrientation(self.car.car)
+        #   goalpos, goalorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
+          puckpos, puckorn = self._p.getBasePositionAndOrientation(self.puck.puck)
           car_ob = self.getExtendedObservation()
-
+          
           if self._termination():
             self.done = True
             break
@@ -111,19 +114,22 @@ class SimpleDrivingEnv(gym.Env):
         # Compute reward as L2 change in distance to goal
         # dist_to_goal = math.sqrt(((car_ob[0] - self.goal[0]) ** 2 +
                                   # (car_ob[1] - self.goal[1]) ** 2))
-        dist_to_goal = math.sqrt(((carpos[0] - goalpos[0]) ** 2 +
-                                  (carpos[1] - goalpos[1]) ** 2))
+        # dist_to_goal = math.sqrt(((carpos[0] - goalpos[0]) ** 2 +
+        #                           (carpos[1] - goalpos[1]) ** 2))
+        dist_to_goal = puckpos[0] - (-2)
         # reward = max(self.prev_dist_to_goal - dist_to_goal, 0)
-        reward = -dist_to_goal
+        reward = dist_to_goal
         self.prev_dist_to_goal = dist_to_goal
 
         # Done by reaching goal
-        if dist_to_goal < 1.5 and not self.reached_goal:
+        if puckpos[0] < -2 and not self.reached_goal:
             #print("reached goal")
+            reward = -50
             self.done = True
             self.reached_goal = True
 
         ob = car_ob
+        print(str(puckpos[0]) + " x," + str(puckpos[1]) + "y, Position")
         return ob, reward, self.done, dict()
 
     def seed(self, seed=None):
@@ -140,22 +146,32 @@ class SimpleDrivingEnv(gym.Env):
         self._envStepCounter = 0
         self.arm = Arm(self._p)
         # Set the goal to a random target
-        x = (self.np_random.uniform(5, 9) if self.np_random.integers(2) else
-             self.np_random.uniform(-9, -5))
-        y = (self.np_random.uniform(5, 9) if self.np_random.integers(2) else
-             self.np_random.uniform(-9, -5))
-        self.goal = (x, y)
+        # x = (self.np_random.uniform(5, 9) if self.np_random.integers(2) else
+        #      self.np_random.uniform(-9, -5))
+        # y = (self.np_random.uniform(5, 9) if self.np_random.integers(2) else
+        #      self.np_random.uniform(-9, -5))
+        self.goal = (10,-10)
         self.done = False
         self.reached_goal = False
 
         # Visual element of the goal
         self.goal_object = Goal(self._p, self.goal)
 
-
-        self.puck = Puck(self._p,(-1,0)) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-        self.wall = Wall (self._p,(0,0),self.puck) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-        p.setTimeStep(1.0 / 240.0)  # Set a smaller time step for more accurate simulation ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-        p.setPhysicsEngineParameter(numSolverIterations=10) ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+        initalPuckPos = (0,0)  #X,Y coords of initial placement
+        # initalPuckMomentum = (1,0) # Both numbers add to 1 for 500 units of initial kick first is X kick second is Y kick
+        # Randomised initial direction going backwards
+        #
+        # _____________________________________
+        #
+        b = random.uniform(-1, 1)
+        a = 1 - abs(b)
+        initalPuckMomentum = (a,b)
+        #
+        
+        self.puck = Puck(self._p,initalPuckPos,initalPuckMomentum) 
+        self.wall = Wall (self._p,(0,0),self.puck) 
+        p.setTimeStep(1.0 / 240.0)  # Set a smaller time step for more accurate simulation 
+        p.setPhysicsEngineParameter(numSolverIterations=10) 
         
 
         # Get observation to return
@@ -198,13 +214,13 @@ class SimpleDrivingEnv(gym.Env):
             # plt.pause(.00001)
 
         elif mode == "tp_camera":
-            car_id = self.car.get_ids()
-            base_pos, orn = self._p.getBasePositionAndOrientation(car_id)
-            view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-                                                                    distance=10, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-                                                                    yaw=0.0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-                                                                    pitch=-90, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-                                                                    roll=0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+            # car_id = self.car.get_ids()
+            base_pos = (0,0,0)#, orn = self._p.getBasePositionAndOrientation(car_id)
+            view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos, 
+                                                                    distance=3.46410161028, 
+                                                                    yaw=-90.0, 
+                                                                    pitch=-90, 
+                                                                    roll=0, 
                                                                     upAxisIndex=2)
             proj_matrix = self._p.computeProjectionMatrixFOV(fov=60,
                                                              aspect=float(RENDER_WIDTH) / RENDER_HEIGHT,

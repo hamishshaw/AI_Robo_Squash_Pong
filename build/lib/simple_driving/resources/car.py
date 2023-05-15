@@ -8,7 +8,7 @@ class Car:
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), 'simplecar.urdf')
         self.car = self.client.loadURDF(fileName=f_name,
-                              basePosition=[0, 0, 0.1])
+                              basePosition=[-10, -10, 0.1])
 
         # Joint indices as found by p.getJointInfo()
         self.steering_joints = [0, 2]
