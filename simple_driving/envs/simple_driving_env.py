@@ -113,11 +113,14 @@ class SimpleDrivingEnv(gym.Env):
 
         dist_to_goal = puckpos[0] - end_aff_pos[0]
         
-
+        
         reward = dist_to_goal
         self.prev_dist_to_goal = dist_to_goal
 
+        total_dist_to_goal = math.sqrt((puckpos[0]- end_aff_pos[0])**2 + (puckpos[1]- end_aff_pos[1])**2)
         # Done by reaching goal
+        if total_dist_to_goal < 0.05:
+            reward = 50
         if puckpos[0] < -2 and not self.reached_goal:
             #print("reached goal")
             reward = -50
@@ -126,7 +129,7 @@ class SimpleDrivingEnv(gym.Env):
 
        # TODO
        # return the arm end affector pos and puck location
-        arm_info = [0,0,0,0]
+        arm_info = [end_aff_pos[0],end_aff_pos[1],puckpos[0],puckpos[1]]
 
         print(str(puckpos[0]) + " x," + str(puckpos[1]) + "y, Position")
         print(f"end affector at x = {end_aff_pos[0]}, y = {end_aff_pos[1]}")
@@ -170,9 +173,9 @@ class SimpleDrivingEnv(gym.Env):
         
 
         # Get observation to return
-
+        arm_end_aff_pos = self.getExtendedObservation()
         # TODO return puck pos and end affector position
-        arm_info = [0,0,0,0]
+        arm_info = [arm_end_aff_pos[0],arm_end_aff_pos[1],initalPuckPos[0],initalPuckPos[1]]
         return np.array(arm_info, dtype=np.float32)
 
     def render(self, mode='human'):
