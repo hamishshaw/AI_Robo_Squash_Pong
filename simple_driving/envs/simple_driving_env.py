@@ -22,7 +22,7 @@ class SimpleDrivingEnv(gym.Env):
 
     def __init__(self, isDiscrete=True, renders=False):
         if (isDiscrete):
-            self.action_space = gym.spaces.Discrete(7)
+            self.action_space = gym.spaces.Discrete(9)
         else:
             self.action_space = gym.spaces.box.Box(
                 low=np.array([-1, -.6], dtype=np.float32),
@@ -88,8 +88,8 @@ class SimpleDrivingEnv(gym.Env):
             # joint 0 = +  joint 1  = +
             # joint 0 = -  joint 1 = -
             # joint 0 = none   joint 1 = none   
-            joint_0 = [1, -1, 0, 0, 1, -1, 0]
-            joint_1 = [0, 0, 1, -1, 1, -1, 0]
+            joint_0 = [1, -1, 0, 0, 1, -1, -1, 1, 0]
+            joint_1 = [0, 0, 1, -1, 1, -1, 1, -1, 0]
 
             self.arm_joint_pos[0] += joint_0[action]*0.05
             self.arm_joint_pos[1] += joint_1[action]*0.05

@@ -26,11 +26,5 @@ class Arm:
         self.client.setJointMotorControl2(self.arm, self.joint_pos[1],
                                    controlMode=p.POSITION_CONTROL,
                                     targetPosition=self.steering_angle[1]) 
-
-        print(f"joint 0 = {self.steering_angle[0]}")
-        print(f"joint 1 = {self.steering_angle[1]}")         
-        #move join 1
-        #self.steering_angle[1] = action[1]
-        #self.client.setJointMotorControlArray(self.arm, [1],
-        #                        controlMode=p.POSITION_CONTROL,
-        #                        targetPositions=[self.steering_angle[1]] * 2)  
+     
+  
