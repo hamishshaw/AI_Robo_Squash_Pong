@@ -201,7 +201,7 @@ class SimpleDrivingEnv(gym.Env):
             car_id = self.car.get_ids()
             base_pos, orn = self._p.getBasePositionAndOrientation(car_id)
             view_matrix = self._p.computeViewMatrixFromYawPitchRoll(cameraTargetPosition=base_pos, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
-                                                                    distance=30, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
+                                                                    distance=10, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
                                                                     yaw=0.0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
                                                                     pitch=-90, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
                                                                     roll=0, ## TRACKER FOR ADDITIONS TO CORE PROGRAM
