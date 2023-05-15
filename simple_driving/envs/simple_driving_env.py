@@ -96,6 +96,7 @@ class SimpleDrivingEnv(gym.Env):
 
         # this adjusts the joint angles of the arm.
         self.arm.apply_action(self.arm_joint_pos)
+        end_aff_pos = self.getExtendedObservation()
 
         for i in range(self._actionRepeat):
           self._p.stepSimulation()
@@ -110,8 +111,9 @@ class SimpleDrivingEnv(gym.Env):
           self._envStepCounter += 1
         
 
-        dist_to_goal = puckpos[0] - (-2)
-        # reward = max(self.prev_dist_to_goal - dist_to_goal, 0)
+        dist_to_goal = puckpos[0] - end_aff_pos[0]
+        
+
         reward = dist_to_goal
         self.prev_dist_to_goal = dist_to_goal
 
@@ -127,6 +129,7 @@ class SimpleDrivingEnv(gym.Env):
         arm_info = [0,0,0,0]
 
         print(str(puckpos[0]) + " x," + str(puckpos[1]) + "y, Position")
+        print(f"end affector at x = {end_aff_pos[0]}, y = {end_aff_pos[1]}")
         return arm_info, reward, self.done, dict()
 
     def seed(self, seed=None):
@@ -230,9 +233,12 @@ class SimpleDrivingEnv(gym.Env):
     def getExtendedObservation(self):
         
         # TODO returns the end affector locaiton
-
-
-        observation = [0,0]
+        # some basic forward kinematics
+        basepos = [-3 , 0]
+        x = basepos[0] + 1*math.sin(self.arm_joint_pos[0]) + math.sin(sum(self.arm_joint_pos))
+        y = basepos[1] + 1*math.cos(self.arm_joint_pos[0]) + math.cos(sum(self.arm_joint_pos))
+        
+        observation = [x,y]
         return observation
 
     def _termination(self):
