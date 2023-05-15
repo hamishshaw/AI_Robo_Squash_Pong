@@ -22,7 +22,7 @@ class SimpleDrivingEnv(gym.Env):
 
     def __init__(self, isDiscrete=True, renders=False):
         if (isDiscrete):
-            self.action_space = gym.spaces.Discrete(9)
+            self.action_space = gym.spaces.Discrete(7)
         else:
             self.action_space = gym.spaces.box.Box(
                 low=np.array([-1, -.6], dtype=np.float32),
@@ -42,19 +42,17 @@ class SimpleDrivingEnv(gym.Env):
         self._actionRepeat = 50
         self._renders = renders
         self._isDiscrete = isDiscrete
-        self.car = None
-        self.goal_object = None
         self.puck = None 
         self.wall = None 
         self.threshold_velocity = 10 
-        self.goal = None
         self.done = False
-        self.prev_dist_to_goal = None
         self.rendered_img = None
         self.render_rot_matrix = None
         self.reset()
         self._envStepCounter = 0
         self.arm = None
+        self.arm_joint_pos = None
+        self.prev_dist_to_goal = None
 
     def step(self, action):
         # THis is the puck kicker to ensure it keeps moving
@@ -79,43 +77,39 @@ class SimpleDrivingEnv(gym.Env):
             #     # If the velocity is exactly zero, set the direction to (0, 0, 0)
             #     direction = (1, 0, 0)
 
-            # Calculate the corrective force vector in the same direction as the current velocity
-            
-
-                
-        
-        
-        
-        
+            # Calculate the corrective force vector in the same direction as the current velocity        
         # Feed action to the car and get observation of car's state
         if (self._isDiscrete):
-            fwd = [-1, -1, -1, 0, 0, 0, 1, 1, 1]
-            steerings = [-0.6, 0, 0.6, -0.6, 0, 0.6, -0.6, 0, 0.6]
-            throttle = fwd[action]
-            steering_angle = steerings[action]
-            action = [throttle, steering_angle]
-        # self.car.apply_action(action)
-        self.arm.apply_action([0.05, 0.05])
+            # move the arm based of action, these are the choices
+            # joint 0 = + joint 1 = none
+            # joint 0 = - joint 1 = none
+            # joint 0 = none joint 1 = +
+            # joint 0 = none joint 1 = - 
+            # joint 0 = +  joint 1  = +
+            # joint 0 = -  joint 1 = -
+            # joint 0 = none   joint 1 = none   
+            joint_0 = [1, -1, 0, 0, 1, -1, 0]
+            joint_1 = [0, 0, 1, -1, 1, -1, 0]
+
+            self.arm_joint_pos[0] += joint_0[action]*0.05
+            self.arm_joint_pos[1] += joint_1[action]*0.05
+
+        # this adjusts the joint angles of the arm.
+        self.arm.apply_action(self.arm_joint_pos)
+
         for i in range(self._actionRepeat):
           self._p.stepSimulation()
           if self._renders:
             time.sleep(self._timeStep)
 
-        #   carpos, carorn = self._p.getBasePositionAndOrientation(self.car.car)
-        #   goalpos, goalorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
           puckpos, puckorn = self._p.getBasePositionAndOrientation(self.puck.puck)
-          car_ob = self.getExtendedObservation()
           
           if self._termination():
             self.done = True
             break
           self._envStepCounter += 1
         
-        # Compute reward as L2 change in distance to goal
-        # dist_to_goal = math.sqrt(((car_ob[0] - self.goal[0]) ** 2 +
-                                  # (car_ob[1] - self.goal[1]) ** 2))
-        # dist_to_goal = math.sqrt(((carpos[0] - goalpos[0]) ** 2 +
-        #                           (carpos[1] - goalpos[1]) ** 2))
+
         dist_to_goal = puckpos[0] - (-2)
         # reward = max(self.prev_dist_to_goal - dist_to_goal, 0)
         reward = dist_to_goal
@@ -128,9 +122,12 @@ class SimpleDrivingEnv(gym.Env):
             self.done = True
             self.reached_goal = True
 
-        ob = car_ob
+       # TODO
+       # return the arm end affector pos and puck location
+        arm_info = [0,0,0,0]
+
         print(str(puckpos[0]) + " x," + str(puckpos[1]) + "y, Position")
-        return ob, reward, self.done, dict()
+        return arm_info, reward, self.done, dict()
 
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
@@ -142,14 +139,10 @@ class SimpleDrivingEnv(gym.Env):
         self._p.setGravity(0, 0, -10)
         # Reload the plane and car
         Plane(self._p)
-        self.car = Car(self._p)
         self._envStepCounter = 0
         self.arm = Arm(self._p)
-        # Set the goal to a random target
-        # x = (self.np_random.uniform(5, 9) if self.np_random.integers(2) else
-        #      self.np_random.uniform(-9, -5))
-        # y = (self.np_random.uniform(5, 9) if self.np_random.integers(2) else
-        #      self.np_random.uniform(-9, -5))
+        self.arm_joint_pos = [0,0]
+
         self.goal = (10,-10)
         self.done = False
         self.reached_goal = False
@@ -166,7 +159,6 @@ class SimpleDrivingEnv(gym.Env):
         b = random.uniform(-1, 1)
         a = 1 - abs(b)
         initalPuckMomentum = (a,b)
-        #
         
         self.puck = Puck(self._p,initalPuckPos,initalPuckMomentum) 
         self.wall = Wall (self._p,(0,0),self.puck) 
@@ -175,21 +167,19 @@ class SimpleDrivingEnv(gym.Env):
         
 
         # Get observation to return
-        carpos = self.car.get_observation()
 
-        self.prev_dist_to_goal = math.sqrt(((carpos[0] - self.goal[0]) ** 2 +
-                                           (carpos[1] - self.goal[1]) ** 2))
-        car_ob = self.getExtendedObservation()
-        return np.array(car_ob, dtype=np.float32)
+        # TODO return puck pos and end affector position
+        arm_info = [0,0,0,0]
+        return np.array(arm_info, dtype=np.float32)
 
     def render(self, mode='human'):
         if mode == "fp_camera":
             # Base information
-            car_id = self.car.get_ids()
+            arm_id = self.arm.get_ids()
             proj_matrix = self._p.computeProjectionMatrixFOV(fov=80, aspect=1,
                                                        nearVal=0.01, farVal=100)
             pos, ori = [list(l) for l in
-                        self._p.getBasePositionAndOrientation(car_id)]
+                        self._p.getBasePositionAndOrientation(arm_id)]
             pos[2] = 0.2
 
             # Rotate camera direction
@@ -238,13 +228,11 @@ class SimpleDrivingEnv(gym.Env):
             return np.array([])
 
     def getExtendedObservation(self):
-        # self._observation = []  #self._racecar.getObservation()
-        carpos, carorn = self._p.getBasePositionAndOrientation(self.car.car)
-        goalpos, goalorn = self._p.getBasePositionAndOrientation(self.goal_object.goal)
-        invCarPos, invCarOrn = self._p.invertTransform(carpos, carorn)
-        goalPosInCar, goalOrnInCar = self._p.multiplyTransforms(invCarPos, invCarOrn, goalpos, goalorn)
+        
+        # TODO returns the end affector locaiton
 
-        observation = [goalPosInCar[0], goalPosInCar[1]]
+
+        observation = [0,0]
         return observation
 
     def _termination(self):

@@ -19,10 +19,16 @@ class Arm:
         # used to move the arm, action is 2d array of move joint by increment
     def apply_action(self, action):
         #move joint 0
-        self.steering_angle[0] += action[0]
-        self.client.setJointMotorControlArray(self.arm, self.joint_pos,
+        self.steering_angle = action
+        self.client.setJointMotorControl2(self.arm, self.joint_pos[0],
                                    controlMode=p.POSITION_CONTROL,
-                                    targetPositions=[self.steering_angle[0]] * 2)         
+                                    targetPosition=self.steering_angle[0]) 
+        self.client.setJointMotorControl2(self.arm, self.joint_pos[1],
+                                   controlMode=p.POSITION_CONTROL,
+                                    targetPosition=self.steering_angle[1]) 
+
+        print(f"joint 0 = {self.steering_angle[0]}")
+        print(f"joint 1 = {self.steering_angle[1]}")         
         #move join 1
         #self.steering_angle[1] = action[1]
         #self.client.setJointMotorControlArray(self.arm, [1],
