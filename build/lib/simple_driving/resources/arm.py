@@ -8,7 +8,7 @@ class Arm:
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), 'arm.urdf')
         self.arm = client.loadURDF(fileName=f_name,
-                   basePosition=[-3, 0, 0])
+                   basePosition=[-2.5, 0, 0])
         # to set joint positions
         self.joint_pos = [0, 1]
         # sets angle for both joints
@@ -26,11 +26,5 @@ class Arm:
         self.client.setJointMotorControl2(self.arm, self.joint_pos[1],
                                    controlMode=p.POSITION_CONTROL,
                                     targetPosition=self.steering_angle[1]) 
-
-        print(f"joint 0 = {self.steering_angle[0]}")
-        print(f"joint 1 = {self.steering_angle[1]}")         
-        #move join 1
-        #self.steering_angle[1] = action[1]
-        #self.client.setJointMotorControlArray(self.arm, [1],
-        #                        controlMode=p.POSITION_CONTROL,
-        #                        targetPositions=[self.steering_angle[1]] * 2)  
+     
+  

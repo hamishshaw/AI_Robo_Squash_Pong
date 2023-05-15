@@ -8,7 +8,7 @@ class Arm:
         self.client = client
         f_name = os.path.join(os.path.dirname(__file__), 'arm.urdf')
         self.arm = client.loadURDF(fileName=f_name,
-                   basePosition=[-3, 0, 0])
+                   basePosition=[-2.5, 0, 0])
         # to set joint positions
         self.joint_pos = [0, 1]
         # sets angle for both joints

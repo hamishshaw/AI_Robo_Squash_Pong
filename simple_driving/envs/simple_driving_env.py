@@ -39,7 +39,7 @@ class SimpleDrivingEnv(gym.Env):
 
         self.reached_goal = False
         self._timeStep = 0.01
-        self._actionRepeat = 50
+        self._actionRepeat = 5
         self._renders = renders
         self._isDiscrete = isDiscrete
         self.puck = None 
@@ -111,28 +111,40 @@ class SimpleDrivingEnv(gym.Env):
           self._envStepCounter += 1
         
 
-        dist_to_goal = puckpos[0] - end_aff_pos[0]
-        
-        
-        reward = dist_to_goal
-        self.prev_dist_to_goal = dist_to_goal
+        #dist_to_goal = math.sqrt((puckpos[1] - end_aff_pos[1])**2 +  (puckpos[0] - end_aff_pos[0])**2)
+        dist_to_goal = puckpos[1] - end_aff_pos[1]
+        #print(f"end affector at x = {end_aff_pos[0]}, y = {end_aff_pos[1]} ")
+        #print(end_aff_pos)
+        #reward = self.prev_dist_to_goal-dist_to_goal * -.1
+
+        reward = -dist_to_goal
+        #self.prev_dist_to_goal = dist_to_goal
+        #if dist_to_goal < 0.15 and dist_to_goal > -0.15:
+        #    reward = 1 
+        #if end_aff_pos[0] > - 2: 
+        #    reward += 0.1
+        #reward = (1 - abs(dist_to_goal))
+        #reward += (2 + end_aff_pos[0])*0.5
+
+
 
         total_dist_to_goal = math.sqrt((puckpos[0]- end_aff_pos[0])**2 + (puckpos[1]- end_aff_pos[1])**2)
         # Done by reaching goal
-        if total_dist_to_goal < 0.05:
-            reward = 50
-        if puckpos[0] < -2 and not self.reached_goal:
+        if total_dist_to_goal < 0.3 :
+            #print("nice one")
+            reward = 10
+        if puckpos[0] < -2.2 or (puckpos[1] > 2.1) or (puckpos[1]<-2.1):
             #print("reached goal")
             reward = -50
             self.done = True
             self.reached_goal = True
 
-       # TODO
-       # return the arm end affector pos and puck location
+       
+        # return the arm end affector pos and puck location
         arm_info = [end_aff_pos[0],end_aff_pos[1],puckpos[0],puckpos[1]]
 
-        print(str(puckpos[0]) + " x," + str(puckpos[1]) + "y, Position")
-        print(f"end affector at x = {end_aff_pos[0]}, y = {end_aff_pos[1]}")
+        #print(str(puckpos[0]) + " x," + str(puckpos[1]) + "y, Position")
+        #print(f"end affector at x = {end_aff_pos[0]}, y = {end_aff_pos[1]}")
         return arm_info, reward, self.done, dict()
 
     def seed(self, seed=None):
@@ -153,9 +165,6 @@ class SimpleDrivingEnv(gym.Env):
         self.done = False
         self.reached_goal = False
 
-        # Visual element of the goal
-        self.goal_object = Goal(self._p, self.goal)
-
         initalPuckPos = (0,0)  #X,Y coords of initial placement
         # initalPuckMomentum = (1,0) # Both numbers add to 1 for 500 units of initial kick first is X kick second is Y kick
         # Randomised initial direction going backwards
@@ -174,6 +183,7 @@ class SimpleDrivingEnv(gym.Env):
 
         # Get observation to return
         arm_end_aff_pos = self.getExtendedObservation()
+        self.prev_dist_to_goal =   math.sqrt((initalPuckPos[0]- arm_end_aff_pos[0])**2 + (initalPuckPos[1]- arm_end_aff_pos[1])**2)
         # TODO return puck pos and end affector position
         arm_info = [arm_end_aff_pos[0],arm_end_aff_pos[1],initalPuckPos[0],initalPuckPos[1]]
         return np.array(arm_info, dtype=np.float32)
@@ -237,9 +247,9 @@ class SimpleDrivingEnv(gym.Env):
         
         # TODO returns the end affector locaiton
         # some basic forward kinematics
-        basepos = [-3 , 0]
-        x = basepos[0] + 1*math.sin(self.arm_joint_pos[0]) + math.sin(sum(self.arm_joint_pos))
-        y = basepos[1] + 1*math.cos(self.arm_joint_pos[0]) + math.cos(sum(self.arm_joint_pos))
+        basepos = [-2.5 , 0]
+        x = basepos[0] + 1*math.cos(self.arm_joint_pos[0]) + math.cos(sum(self.arm_joint_pos))
+        y = basepos[1] + 1*math.sin(self.arm_joint_pos[0]) + math.sin(sum(self.arm_joint_pos))
         
         observation = [x,y]
         return observation
