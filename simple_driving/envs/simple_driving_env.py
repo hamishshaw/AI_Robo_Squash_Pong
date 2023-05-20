@@ -39,7 +39,7 @@ class SimpleDrivingEnv(gym.Env):
 
         self.reached_goal = False
         self._timeStep = 0.01
-        self._actionRepeat = 5
+        self._actionRepeat = 2
         self._renders = renders
         self._isDiscrete = isDiscrete
         self.puck = None 
@@ -117,7 +117,8 @@ class SimpleDrivingEnv(gym.Env):
         #print(end_aff_pos)
         #reward = self.prev_dist_to_goal-dist_to_goal * -.1
 
-        reward = -dist_to_goal
+        reward = -abs(dist_to_goal)
+        reward += abs(2 + end_aff_pos[0])/5
         #self.prev_dist_to_goal = dist_to_goal
         #if dist_to_goal < 0.15 and dist_to_goal > -0.15:
         #    reward = 1 

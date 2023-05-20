@@ -87,7 +87,7 @@ for i in range(200):
     temppoints = get_non_black_pixels(tempcolourframe)
     if not (len(temppoints) == 0):
         points = temppoints
-    # print(points)
+    print(points)
     # print(n_clusters)
     centroids, assignment = kmeans(points, n_clusters)
     centroids = map_pixels_to_coordinates(centroids,renderwidth,renderheight)
